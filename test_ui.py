@@ -5,15 +5,20 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from config import BASE_URL
 
-@pytest.mark.ui
-def test_confirm_city():
+@pytest.fixture
+def driver():
     options = webdriver.ChromeOptions()
     options.add_argument("--start-maximized")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    drv = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    yield drv
+    drv.quit()
+
+@pytest.mark.ui
+def test_confirm_city(driver):
     driver.get(BASE_URL)
     wait = WebDriverWait(driver, 5)
     with allure.step("Подтверждение города"):
@@ -24,13 +29,9 @@ def test_confirm_city():
             driver.execute_script("arguments[0].click();", confirm_button)
         except TimeoutException:
             pass
-    driver.quit()
 
 @pytest.mark.ui
-def test_open_books_section_via_catalog():
-    options = webdriver.ChromeOptions()
-    options.add_argument("--start-maximized")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+def test_open_books_section_via_catalog(driver):
     driver.get(BASE_URL)
     wait = WebDriverWait(driver, 10)
     with allure.step("Открытие каталога"):
@@ -48,13 +49,9 @@ def test_open_books_section_via_catalog():
             (By.CSS_SELECTOR, "p.head-categories-menu__title")
         ))
         assert "Книги" in header.text
-    driver.quit()
 
 @pytest.mark.ui
-def test_open_cart():
-    options = webdriver.ChromeOptions()
-    options.add_argument("--start-maximized")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+def test_open_cart(driver):
     driver.get(BASE_URL)
     wait = WebDriverWait(driver, 10)
     with allure.step("Открытие корзины"):
@@ -67,13 +64,9 @@ def test_open_cart():
             (By.CSS_SELECTOR, "h1.cart-page__title")
         ))
         assert "КОРЗИНА" in header.text.upper()
-    driver.quit()
 
 @pytest.mark.ui
-def test_search_book_count():
-    options = webdriver.ChromeOptions()
-    options.add_argument("--start-maximized")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+def test_search_book_count(driver):
     driver.get(BASE_URL)
     wait = WebDriverWait(driver, 15)
     with allure.step("Поиск книги"):
@@ -88,13 +81,9 @@ def test_search_book_count():
             (By.CSS_SELECTOR, "div.catalog-products-total")
         )).text
         assert "товар" in total_text
-    driver.quit()
 
 @pytest.mark.ui
-def test_accept_cookies():
-    options = webdriver.ChromeOptions()
-    options.add_argument("--start-maximized")
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+def test_accept_cookies(driver):
     driver.get(BASE_URL)
     wait = WebDriverWait(driver, 10)
     with allure.step("Закрытие уведомления о cookie"):
@@ -102,4 +91,3 @@ def test_accept_cookies():
             (By.XPATH, "//div[contains(@class,'chg-app-button__content') and contains(., 'Понятно, закрыть')]")
         ))
         driver.execute_script("arguments[0].click();", button)
-    driver.quit()
